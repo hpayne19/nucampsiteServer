@@ -7,13 +7,14 @@ const favoriteRouter = express.Router();
 
 favoriteRouter.route('/')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
-.get(cors.cors, (req, res, next) => {
+.get(cors.cors, authenticate.verifyUser, (req, res, next) => {
     Favorite.find({ user: req.user._id })
-    .populate('user, campsites')
-    .then(favorite => {
+    .populate('user')
+    .populate('campsites')
+    .then(favorites => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(favorite);
+        res.json(favorites);
     })
     .catch(err => next(err));
 })
@@ -35,7 +36,8 @@ favoriteRouter.route('/')
             .catch(err => next(err));
         } else {
             Favorite.create({
-                user: req.user._id
+                user: req.user._id,
+                campsites: req.body
             })
             .then(favorite => {
                 req.body.forEach( fav => {
